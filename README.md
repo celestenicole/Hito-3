@@ -6,12 +6,12 @@ API REST desarrollada con **Node.js + Express + PostgreSQL**.
 
 ### Requerimientos cumplidos
 
-1. **Proyecto npm + dependencias** (1 pt) — Express, pg, bcryptjs, jsonwebtoken, cors, dotenv
-2. **Paquete pg para PostgreSQL** (3 pts) — Pool de conexiones, consultas parametrizadas, CRUD completo
-3. **Autenticación y autorización con JWT** (2 pts) — Login, register, tokens con expiración 24h
-4. **CORS habilitado** (1 pt) — Paquete cors configurado globalmente
-5. **Middlewares de validación** (2 pts) — verificarAuth, verificarAdmin, logRequest, manejarError
-6. **Tests con supertest** (1 pt) — 8 tests en 4+ rutas con diferentes códigos de estado
+1. **Proyecto npm + dependencias**  — Express, pg, bcryptjs, jsonwebtoken, cors, dotenv
+2. **Paquete pg para PostgreSQL**  — Pool de conexiones, consultas parametrizadas, CRUD completo
+3. **Autenticación y autorización con JWT**  — Login, register, tokens con expiración 24h
+4. **CORS habilitado**  — Paquete cors configurado globalmente
+5. **Middlewares de validación**  — verificarAuth, verificarAdmin, logRequest, manejarError
+6. **Tests con supertest**  — 8 tests en 4+ rutas con diferentes códigos de estado
 
 ---
 
