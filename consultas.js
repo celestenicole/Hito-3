@@ -147,10 +147,14 @@ const vaciarCarrito = async (usuario_id) => {
 
 // ===== ÓRDENES =====
 
-const confirmarCompra = async (usuario_id) => {
+const confirmarCompra = async (usuario_id, datosCheckout = {}) => {
   const carrito = await obtenerCarrito(usuario_id)
   if (carrito.items.length === 0) throw { code: 400, message: 'El carrito está vacío' }
-  const { rows: orden } = await pool.query('INSERT INTO ordenes (usuario_id, total) VALUES ($1, $2) RETURNING *', [usuario_id, carrito.total])
+  const { nombre_completo, telefono, direccion, ciudad, metodo_pago, notas } = datosCheckout
+  const { rows: orden } = await pool.query(
+    'INSERT INTO ordenes (usuario_id, total, nombre_completo, telefono, direccion, ciudad, metodo_pago, notas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+    [usuario_id, carrito.total, nombre_completo || null, telefono || null, direccion || null, ciudad || null, metodo_pago || null, notas || null]
+  )
   for (const item of carrito.items) {
     await pool.query('INSERT INTO ordenes_detalle (orden_id, publicacion_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)', [orden[0].id, item.publicacion_id, item.cantidad, item.precio])
   }
@@ -159,8 +163,14 @@ const confirmarCompra = async (usuario_id) => {
 }
 
 const obtenerOrdenes = async (usuario_id) => {
-  const query = 'SELECT o.*, json_agg(json_build_object(\'publicacion_id\', od.publicacion_id, \'cantidad\', od.cantidad, \'precio_unitario\', od.precio_unitario)) AS detalle FROM ordenes o LEFT JOIN ordenes_detalle od ON o.id = od.orden_id WHERE o.usuario_id = $1 GROUP BY o.id ORDER BY o.created_at DESC'
+  const query = "SELECT o.*, json_agg(json_build_object('publicacion_id', od.publicacion_id, 'cantidad', od.cantidad, 'precio_unitario', od.precio_unitario)) AS detalle FROM ordenes o LEFT JOIN ordenes_detalle od ON o.id = od.orden_id WHERE o.usuario_id = $1 GROUP BY o.id ORDER BY o.created_at DESC"
   const { rows } = await pool.query(query, [usuario_id])
+  return rows
+}
+
+const obtenerTodasOrdenes = async () => {
+  const query = "SELECT o.*, u.email AS usuario_email, json_agg(json_build_object('publicacion_id', od.publicacion_id, 'cantidad', od.cantidad, 'precio_unitario', od.precio_unitario)) AS detalle FROM ordenes o JOIN usuarios u ON o.usuario_id = u.id LEFT JOIN ordenes_detalle od ON o.id = od.orden_id GROUP BY o.id, u.email ORDER BY o.created_at DESC"
+  const { rows } = await pool.query(query)
   return rows
 }
 
@@ -175,5 +185,5 @@ module.exports = {
   obtenerPublicaciones, obtenerPublicacion, crearPublicacion, actualizarPublicacion, eliminarPublicacion,
   obtenerFavoritos, agregarFavorito, eliminarFavorito,
   obtenerCarrito, agregarAlCarrito, actualizarItemCarrito, vaciarCarrito,
-  confirmarCompra, obtenerOrdenes, cancelarOrden
+  confirmarCompra, obtenerOrdenes, obtenerTodasOrdenes, cancelarOrden
 }

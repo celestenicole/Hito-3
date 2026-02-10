@@ -7,7 +7,7 @@ const {
   obtenerPublicaciones, obtenerPublicacion, crearPublicacion, actualizarPublicacion, eliminarPublicacion,
   obtenerFavoritos, agregarFavorito, eliminarFavorito,
   obtenerCarrito, agregarAlCarrito, actualizarItemCarrito, vaciarCarrito,
-  confirmarCompra, obtenerOrdenes, cancelarOrden
+  confirmarCompra, obtenerOrdenes, obtenerTodasOrdenes, cancelarOrden
 } = require('./consultas')
 
 const { generarToken } = require('./secretKey')
@@ -184,7 +184,8 @@ app.delete('/api/carrito', verificarAuth, async (req, res, next) => {
 // ===== RUTAS ÓRDENES =====
 app.post('/api/ordenes', verificarAuth, async (req, res, next) => {
   try {
-    const orden = await confirmarCompra(req.user.id)
+    const { nombre_completo, telefono, direccion, ciudad, metodo_pago, notas } = req.body
+    const orden = await confirmarCompra(req.user.id, { nombre_completo, telefono, direccion, ciudad, metodo_pago, notas })
     res.status(201).json(orden)
   } catch (err) {
     next(err)
@@ -194,6 +195,16 @@ app.post('/api/ordenes', verificarAuth, async (req, res, next) => {
 app.get('/api/ordenes', verificarAuth, async (req, res, next) => {
   try {
     const ordenes = await obtenerOrdenes(req.user.id)
+    res.json(ordenes)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Admin: ver TODAS las órdenes con datos de contacto
+app.get('/api/admin/ordenes', verificarAuth, verificarAdmin, async (req, res, next) => {
+  try {
+    const ordenes = await obtenerTodasOrdenes()
     res.json(ordenes)
   } catch (err) {
     next(err)
