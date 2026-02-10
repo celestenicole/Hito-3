@@ -7,7 +7,7 @@ const {
   obtenerPublicaciones, obtenerPublicacion, crearPublicacion, actualizarPublicacion, eliminarPublicacion,
   obtenerFavoritos, agregarFavorito, eliminarFavorito,
   obtenerCarrito, agregarAlCarrito, actualizarItemCarrito, vaciarCarrito,
-  confirmarCompra, obtenerOrdenes, obtenerTodasOrdenes, cancelarOrden
+  confirmarCompra, obtenerOrdenes, obtenerTodasOrdenes, cancelarOrden, actualizarEstadoOrden
 } = require('./consultas')
 
 const { generarToken } = require('./secretKey')
@@ -51,7 +51,6 @@ app.post('/api/auth/login', async (req, res, next) => {
   }
 })
 
-// ===== RUTA PERFIL =====
 app.get('/api/auth/me', verificarAuth, async (req, res, next) => {
   try {
     const user = await obtenerUsuario(req.user.id)
@@ -201,7 +200,16 @@ app.get('/api/ordenes', verificarAuth, async (req, res, next) => {
   }
 })
 
-// Admin: ver TODAS las órdenes con datos de contacto
+app.put('/api/ordenes/:id/cancelar', verificarAuth, async (req, res, next) => {
+  try {
+    const orden = await cancelarOrden(req.params.id, req.user.id)
+    res.json(orden)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ===== RUTAS ADMIN =====
 app.get('/api/admin/ordenes', verificarAuth, verificarAdmin, async (req, res, next) => {
   try {
     const ordenes = await obtenerTodasOrdenes()
@@ -211,9 +219,11 @@ app.get('/api/admin/ordenes', verificarAuth, verificarAdmin, async (req, res, ne
   }
 })
 
-app.put('/api/ordenes/:id/cancelar', verificarAuth, async (req, res, next) => {
+app.put('/api/admin/ordenes/:id/estado', verificarAuth, verificarAdmin, async (req, res, next) => {
   try {
-    const orden = await cancelarOrden(req.params.id, req.user.id)
+    const { status } = req.body
+    if (!status) return res.status(400).json({ error: 'Status es requerido' })
+    const orden = await actualizarEstadoOrden(req.params.id, status)
     res.json(orden)
   } catch (err) {
     next(err)
